@@ -16,7 +16,7 @@ const createItem = (req, res) => {
   console.log('Image URL:', imageUrl);
 
   ClothingItem.create({ name, weather, imageUrl, owner })
-    .then(item => res.status(201).send({data:item})) //item
+    .then(item => res.status(201).send({data:item})) // item
     .catch(err => {
       console.error(err);
 
@@ -46,7 +46,7 @@ const deleteItem = (req, res) => {
 
   ClothingItem.findByIdAndDelete(itemId)
     .orFail()
-    .then((item) => res.status(204).send(item)) //{}
+    .then((item) => res.status(204).send(item)) // {}
     .catch((err) => {
       console.error(err);
 
@@ -70,9 +70,9 @@ const likeItem = (req, res) => {
       console.error(err);
 
       if (err.name === "DocumentNotFoundError") {
-        res.status(documentNotFoundError).send({ message: 'Document error for liking' })
+        return res.status(documentNotFoundError).send({ message: 'Document error for liking' })
       } else if (err.name === "CastError"){
-        res.status(castError).send({ message: "Cast error for liking" })
+        return res.status(castError).send({ message: "Cast error for liking" })
       }
 
       return res.status(serverError).send({ message: err.message });

@@ -20,9 +20,12 @@ const getUserById = (req, res) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
         return res.status(documentNotFoundError).send({ message: err.message })
-      } else if (err.name === "CastError"){
+      }
+
+      if (err.name === "CastError"){
         return res.status(castError).send({ message: err.message })
       }
+      
       return res.status(serverError).send({ message: err.message});
     })
 }
