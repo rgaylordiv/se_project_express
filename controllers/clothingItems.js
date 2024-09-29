@@ -44,16 +44,20 @@ const createItem = (req, res) => {
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
 
+  console.log(itemId)
+
   ClothingItem.findByIdAndDelete(itemId)
     .orFail()
-    .then((item) => res.status(204).send(item)) // {}
+    .then((item) => res.status(200).send(item)) // {}
     .catch((err) => {
       console.error(err);
 
       if (err.name === "DocumentNotFoundError") {
-        res.status(documentNotFoundError).send({ message: 'Document error for deleting an item' })
-      } else if (err.name === "CastError"){
-        res.status(castError).send({ message: 'Cast error for deleting an item' })
+        return res.status(documentNotFoundError).send({ message: 'Document error for deleting an item' })
+      }
+
+      if (err.name === "CastError"){
+        return res.status(castError).send({ message: 'Cast error for deleting an item' })
       }
 
       return res.status(serverError).send({ message: err.message });

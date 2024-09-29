@@ -25,7 +25,7 @@ const getUserById = (req, res) => {
       if (err.name === "CastError"){
         return res.status(castError).send({ message: err.message })
       }
-      
+
       return res.status(serverError).send({ message: err.message});
     })
 }
