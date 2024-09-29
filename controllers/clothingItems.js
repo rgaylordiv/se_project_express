@@ -71,7 +71,9 @@ const likeItem = (req, res) => {
 
       if (err.name === "DocumentNotFoundError") {
         return res.status(documentNotFoundError).send({ message: 'Document error for liking' })
-      } else if (err.name === "CastError"){
+      }
+
+      if (err.name === "CastError"){
         return res.status(castError).send({ message: "Cast error for liking" })
       }
 
@@ -89,9 +91,9 @@ const dislikeItem = (req, res) => {
       console.error(err);
 
       if (err.name === "DocumentNotFoundError") {
-        res.status(documentNotFoundError).send({ message: 'Document for dislikes not available' })
+        return res.status(documentNotFoundError).send({ message: 'Document for dislikes not available' })
       } else if (err.name === "CastError"){
-        res.status(castError).send({ message: 'Cast error for dislikes' })
+        return res.status(castError).send({ message: 'Cast error for dislikes' })
       }
 
       return res.status(serverError).send({ message: err.message });
