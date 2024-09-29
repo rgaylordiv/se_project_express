@@ -1,6 +1,7 @@
 {
   "scripts": {
     "lint": "npx eslint .",
+    "start": "nodemon app.js",
     "dev": "nodemon app.js"
   },
   "dependencies": {
