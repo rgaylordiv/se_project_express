@@ -25,10 +25,6 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use('/', mainRouter);
 
-// module.exports.createClothingItem = (req, res) => {
-//   console.log(req.user._id); // _id will become accessible
-// };
-
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 })

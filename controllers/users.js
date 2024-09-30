@@ -6,7 +6,7 @@ const getUsers = (req, res) => {
     .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.error(err);
-      return res.status(serverError).send({ message: err.message});
+      return res.status(serverError).send({ message: "An error has occurred on the server"});
     }
   )};
 
@@ -23,10 +23,10 @@ const getUserById = (req, res) => {
       }
 
       if (err.name === "CastError"){
-        return res.status(castError).send({ message: err.message })
+        return res.status(castError).send({ message: "Invalid data" })
       }
 
-      return res.status(serverError).send({ message: err.message});
+      return res.status(serverError).send({ message: "An error has occurred on the server"});
     })
 }
 
@@ -39,10 +39,10 @@ const createUser = (req, res) => {
       console.error(err);
 
       if (err.name === "ValidationError") {
-        return res.status(castError).send({ message: err.message })
+        return res.status(castError).send({ message: "Invalid data" })
       }
 
-      return res.status(serverError).send({ message: err.message});
+      return res.status(serverError).send({ message: "An error has occurred on the server"});
     })
 };
 

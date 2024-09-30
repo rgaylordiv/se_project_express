@@ -6,7 +6,7 @@ const getItems = (req, res) => {
     .then(items => res.status(200).send(items))
     .catch(err => {
       console.error(err);
-      return res.status(serverError).send({ message: "Couldn't get the items" });
+      return res.status(serverError).send({ message: "An error has occurred on the server" });
     });
 }
 
@@ -21,25 +21,12 @@ const createItem = (req, res) => {
       console.error(err);
 
       if (err.name === "ValidationError") {
-        return res.status(castError).send({ message: 'cast error' })
+        return res.status(castError).send({ message: 'Invalid data' })
       }
 
-      return res.status(serverError).send({ message: "server error" });
+      return res.status(serverError).send({ message: "An error has occurred on the server" });
     })
 }
-
-// const updateItem = (req, res) => {
-//   const { itemId } = req.params;
-//   const { imageUrl } = req.body;
-
-//   ClothingItem.findByIdAndUpdate(itemId, {$set: {imageUrl}})
-//     .orFail()
-//     .then((item) => res.status(200).send({ data: item }))
-//     .catch((err) => {
-//       console.error(err);
-//       return res.status(serverError).send({ message: err.message });
-//     })
-// }
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
@@ -53,14 +40,14 @@ const deleteItem = (req, res) => {
       console.error(err);
 
       if (err.name === "DocumentNotFoundError") {
-        return res.status(documentNotFoundError).send({ message: 'Document error for deleting an item' })
+        return res.status(documentNotFoundError).send({ message: err.message })
       }
 
       if (err.name === "CastError"){
-        return res.status(castError).send({ message: 'Cast error for deleting an item' })
+        return res.status(castError).send({ message: 'Invalid data' })
       }
 
-      return res.status(serverError).send({ message: err.message });
+      return res.status(serverError).send({ message: "An error has occurred on the server" });
     })
 }
 
@@ -74,14 +61,14 @@ const likeItem = (req, res) => {
       console.error(err);
 
       if (err.name === "DocumentNotFoundError") {
-        return res.status(documentNotFoundError).send({ message: 'Document error for liking' })
+        return res.status(documentNotFoundError).send({ message: err.message })
       }
 
       if (err.name === "CastError"){
-        return res.status(castError).send({ message: "Cast error for liking" })
+        return res.status(castError).send({ message: "Invalid data" })
       }
 
-      return res.status(serverError).send({ message: err.message });
+      return res.status(serverError).send({ message: "An error has occurred on the server" });
     })
 }
 
@@ -95,14 +82,14 @@ const dislikeItem = (req, res) => {
       console.error(err);
 
       if (err.name === "DocumentNotFoundError") {
-        return res.status(documentNotFoundError).send({ message: 'Document for dislikes not available' })
+        return res.status(documentNotFoundError).send({ message: err.message })
       }
 
       if (err.name === "CastError"){
-        return res.status(castError).send({ message: 'Cast error for dislikes' })
+        return res.status(castError).send({ message: 'Invalid data' })
       }
 
-      return res.status(serverError).send({ message: err.message });
+      return res.status(serverError).send({ message: "An error has occurred on the server" });
     })
 }
 
