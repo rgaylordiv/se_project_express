@@ -34,7 +34,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 8,
-    select: false
+    select: false,
+    // validate: {
+    //   validator(value) {
+    //     return validator.isStrongPassword(value);
+    //   },
+    //   message: 'You must enter a strong password',
+    // }
   }
 });
 

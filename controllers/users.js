@@ -2,6 +2,7 @@ const User = require('../models/user');
 const { documentNotFoundError, castError, serverError, authenticationError, duplicationError } = require('../utils/errors');
 const { JWT_SECRET } = require('../utils/config');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken')
 
 const getUsers = (req, res) => {
   User.find({})
@@ -47,7 +48,7 @@ const createUser = (req, res) => {
         console.error(err);
 
         if(err.code === 11000){
-          return res.status(duplicationError).send({ message: "User with this email doesn't exist"});
+          throw new Error("User with this email doesn't exist"); // return res.status(duplicationError).send({ message: "User with this email doesn't exist"});
         }
 
         if (err.name === "ValidationError") {
@@ -77,7 +78,7 @@ const updateUser = (req, res) => {
   return User.findByIdAndUpdate(
     userId,
     { name, avatar },
-    { runValidators: true, new: true}
+    { new: true, runValidators: true}
     )
     .then((user) => {
       res.status(201).send(user);
@@ -89,8 +90,8 @@ const updateUser = (req, res) => {
         return res.status(castError).send({ message: "Invalid data" })
       }
 
-      if(err.name =="NotFound"){
-        return res.status(404).send({ message: 'User could not be found'});
+      if(err.name =="DocumentNotFoundError"){
+        return res.status(documentNotFoundError).send({ message: 'User could not be found'});
       }
 
       return res.status(serverError).send({ message: "An error has occurred on the server"});
