@@ -1,8 +1,8 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken')
 const User = require('../models/user');
 const { documentNotFoundError, castError, serverError, authenticationError, duplicationError } = require('../utils/errors');
 const JWT_SECRET = require('../utils/config');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken')
 
 const getUsers = (req, res) => {
   User.find({})
@@ -14,7 +14,7 @@ const getUsers = (req, res) => {
   )};
 
 const getCurrentUser = (req, res) => {
-  const userId = req.user._id; //req.params
+  const userId = req.user._id; // req.params
 
   User.findById(userId)
     .orFail()
@@ -71,7 +71,7 @@ const createUser = (req, res) => {
 
 const updateUser = (req, res) => {
   const { name, avatar } = req.body;
-  const userId = req.user._id; //req.params
+  const userId = req.user._id; // req.params
 
   return User.findByIdAndUpdate(
     userId,
@@ -88,7 +88,7 @@ const updateUser = (req, res) => {
         return res.status(castError).send({ message: "Invalid data" })
       }
 
-      if(err.name =="DocumentNotFoundError"){
+      if(err.name === "DocumentNotFoundError"){
         return res.status(documentNotFoundError).send({ message: 'User could not be found'});
       }
 
