@@ -40,7 +40,7 @@ const createUser = (req, res) => {
     return res.status(castError).send({ message: "Email and password are required" });
   }
 
-  User.findOne({email})
+  return User.findOne({email})  // added return here for github action
   .then((user) => {
     if(user){
       return res.status(duplicationError).send({ message: "User with this email doesn't exist"});

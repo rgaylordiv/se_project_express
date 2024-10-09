@@ -19,7 +19,8 @@ const auth = (req, res, next) => {
   }
 
   req.user = payload;
-  next();
+
+  return next(); // added return here for github action
 }
 
 module.exports = auth;
