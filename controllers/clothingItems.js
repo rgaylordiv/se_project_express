@@ -1,5 +1,5 @@
 const ClothingItem = require('../models/clothingItem')
-const { documentNotFoundError, castError, serverError } = require('../utils/errors')
+const { documentNotFoundError, castError, serverError, forbiddenError } = require('../utils/errors')
 
 const getItems = (req, res) => {
   ClothingItem.find({})
@@ -30,11 +30,21 @@ const createItem = (req, res) => {
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
+  const userId = req.user._id;
 
   console.log(itemId)
 
-  ClothingItem.findByIdAndDelete(itemId)
+  ClothingItem.findById(itemId) // was findByIdAndDelete
     .orFail()
+    .then((items) => {
+      const ownerId = items.owner.toString();
+
+      if(userId !== ownerId) {
+        return res.status(forbiddenError).send({ message: "You don't have permission to delete this item"})
+      }
+
+      return ClothingItem.findByIdAndDelete(itemId).orFail();
+    })
     .then((item) => res.status(200).send(item)) // {}
     .catch((err) => {
       console.error(err);
