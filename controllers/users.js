@@ -36,13 +36,22 @@ const getCurrentUser = (req, res) => {
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
 
-  bcrypt.hash(password, 10) //second param is for length / req.body.password
-    .then(hash => User.create({
-      name,
-      avatar,
-      email, // req.body.email
-      password: hash
-    })
+  if (!email || !password) {
+    return res.status(castError).send({ message: "Email and password are required" });
+  }
+
+  User.findOne({email})
+  .then((user) => {
+    if(user){
+      return res.status(duplicationError).send({ message: "User with this email doesn't exist"});
+    }
+    return bcrypt.hash(password, 10)
+      .then(hash => User.create({
+        name,
+        avatar,
+        email, // req.body.email
+        password: hash
+      })
       .then(() => res.status(201).send({ name, avatar, email })) // was previously user param
       .catch((err) => {
         console.error(err);
@@ -57,18 +66,7 @@ const createUser = (req, res) => {
 
         return res.status(serverError).send({ message: "An error has occurred on the server"});
     }))
-
-  // User.create({ name, avatar })
-  //   .then((user) => res.status(201).send(user))
-  //   .catch((err) => {
-  //     console.error(err);
-
-  //     if (err.name === "ValidationError") {
-  //       return res.status(castError).send({ message: "Invalid data" })
-  //     }
-
-  //     return res.status(serverError).send({ message: "An error has occurred on the server"});
-  //   })
+  })
 };
 
 const updateUser = (req, res) => {
