@@ -32,7 +32,6 @@ const clothingItem = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId, // Array
     ref: "user",
     default: [],
-    required: true,
   }],
   createdAt: {
     type: Date,

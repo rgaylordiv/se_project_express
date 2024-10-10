@@ -4,15 +4,6 @@ const User = require('../models/user');
 const { documentNotFoundError, castError, serverError, authenticationError, duplicationError } = require('../utils/errors');
 const JWT_SECRET = require('../utils/config');
 
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.status(200).send(users))
-    .catch((err) => {
-      console.error(err);
-      return res.status(serverError).send({ message: "An error has occurred on the server"});
-    }
-  )};
-
 const getCurrentUser = (req, res) => {
   const userId = req.user._id; // req.params
 
@@ -67,6 +58,19 @@ const createUser = (req, res) => {
         return res.status(serverError).send({ message: "An error has occurred on the server"});
     }))
   })
+  .catch((err) => { // this was added to the findOne prosime so it can catch possible errors
+    console.error(err);
+
+    if(err.code === 11000){
+      return res.status(duplicationError).send({ message: "User with this email doesn't exist"});
+    }
+
+    if (err.name === "ValidationError") {
+      return res.status(castError).send({ message: "Invalid data" })
+    }
+
+    return res.status(serverError).send({ message: "An error has occurred on the server"});
+})
 };
 
 const updateUser = (req, res) => {
@@ -78,6 +82,7 @@ const updateUser = (req, res) => {
     { name, avatar },
     { new: true, runValidators: true}
     )
+    .orFail()
     .then((user) => {
       res.status(200).send(user);
     })
@@ -111,9 +116,13 @@ const login = (req, res) => {
 
       res.status(200).send({ token });
     })
-    .catch(() => {
-      res.status(authenticationError).send({ message: 'Authentication error'});
+    .catch((err) => {
+      if ((err.message === "Incorrect email address") || (err.message ===  "Incorrect password")) {
+        return res.status(authenticationError).send({ message: 'Authentication error'});
+     }
+
+     return res.status(serverError).send({ message: "An error has occurred on the server"});  // the if block was added
     })
 }
 
-module.exports = { getUsers, createUser, getCurrentUser, login, updateUser };
+module.exports = { createUser, getCurrentUser, login, updateUser };

@@ -4,14 +4,9 @@ const { getItems, createItem, likeItem, dislikeItem, deleteItem } = require('../
 
 router.get('/', getItems);
 
-router.use(auth);
-
 router.post('/', auth, createItem);
-
 router.put('/:itemId/likes', auth, likeItem);
-
 router.delete('/:itemId/likes', auth, dislikeItem);
-
 router.delete('/:itemId', auth, deleteItem);
 
 module.exports = router;
