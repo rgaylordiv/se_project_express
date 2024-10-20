@@ -14,6 +14,7 @@ const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
   console.log('Image URL:', imageUrl);
+  console.log('Owner:', owner);
 
   ClothingItem.create({ name, weather, imageUrl, owner })
     .then(item => res.status(201).send({data:item})) // item
@@ -85,7 +86,7 @@ const dislikeItem = (req, res) => {
 
   ClothingItem.findByIdAndUpdate(itemId,  {$pull: { likes: req.user._id }}, { new: true })
     .orFail()
-    .then((item) => res.status(200).send(item))
+    .then((item) => res.status(200).send({item}))
     .catch((err) => {
       console.error(err);
 
