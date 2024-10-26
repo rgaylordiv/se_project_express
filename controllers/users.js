@@ -13,7 +13,7 @@ const getCurrentUser = (req, res, next) => {
     .catch(err => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError({ message: err.message })) //.send({ message: err.message }) // NFE documentNotFoundError
+        next(new NotFoundError('Data not found')) //.send({ message: err.message }) // NFE documentNotFoundError
       }
 
       if (err.name === "CastError") { // ValdiationError
@@ -30,7 +30,7 @@ const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
   if(!email || !password){
-    next(new BadRequestError({ message: 'Enter email and password are required' })) // castError
+    next(new BadRequestError('Enter email and password are required')) // castError
   }
 
   return User.findOne({email})  // added return here for github action
@@ -50,11 +50,11 @@ const createUser = (req, res, next) => {
         console.error(err);
 
         if(err.code === 11000){
-          next(new ConflictError({ message: "User with this email doesn't exist" })) //.send({ message: "User with this email doesn't exist"}); // duplicationError
+          next(new ConflictError("User with this email doesn't exist")) //.send({ message: "User with this email doesn't exist"}); // duplicationError
         }
 
         if (err.name === "CastError") { // ValdiationError
-          next(new BadRequestError({ message: 'Invalid data' })) //.send({ message: 'Invalid data' })  400 - BRE was castError
+          next(new BadRequestError('Invalid data')) //.send({ message: 'Invalid data' })  400 - BRE was castError
         } else {
           next(err);
         }
@@ -66,11 +66,11 @@ const createUser = (req, res, next) => {
     console.error(err);
 
     if(err.code === 11000){
-      next(new ConflictError({ message: "User with this email doesn't exist" })) //.send({ message: "User with this email doesn't exist"}); // duplicationError
+      next(new ConflictError("User with this email doesn't exist")) //.send({ message: "User with this email doesn't exist"}); // duplicationError
     }
 
     if (err.name === "CastError") { // ValdiationError
-      next(new BadRequestError({ message: 'Invalid data' })) //.send({ message: 'Invalid data' })  400 - BRE was castError
+      next(new BadRequestError('Invalid data')) //.send({ message: 'Invalid data' })  400 - BRE was castError
     } else {
       next(err);
     }
@@ -96,11 +96,11 @@ const updateUser = (req, res, next) => {
       console.error(err);
 
       if (err.name === "CastError") { // ValdiationError
-        next(new BadRequestError({ message: 'Invalid data' })) //.send({ message: 'Invalid data' })  400 - BRE was castError
+        next(new BadRequestError('Invalid data')) //.send({ message: 'Invalid data' })  400 - BRE was castError
       }
 
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError({ message: err.message })) //.send({ message: err.message }) // NFE documentNotFoundError
+        next(new NotFoundError('Data not found')) //.send({ message: err.message }) // NFE documentNotFoundError
       } else {
         next(err);
       }
@@ -113,7 +113,7 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if(!email || !password){
-    next(new BadRequestError({ message: 'Enter email and password' })) // castError
+    next(new BadRequestError('Enter email and password')) // castError
   }
   return User.findUserByCredentials(email, password)
     .then((user) => {
@@ -125,7 +125,7 @@ const login = (req, res, next) => {
     })
     .catch((err) => {
       if ((err.message === "Incorrect email address") || (err.message ===  "Incorrect password")) {
-        next(new UnauthorizedError({ message: 'Authentication error' })) //.send({ message: 'Authentication error'}); // authenticationError
+        next(new UnauthorizedError('Authentication error')) //.send({ message: 'Authentication error'}); // authenticationError
      } else {
       next(err);
      }
