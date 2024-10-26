@@ -36,17 +36,19 @@ const deleteItem = (req, res, next) => {
   const userId = req.user._id;
 
   ClothingItem.findById(itemId) // was findByIdAndDelete
-    .orFail()
     .then((items) => {
-      const ownerId = items.owner.toString();
+      if(!items) throw new NotFoundError('Item not found');
 
+      const ownerId = items.owner.toString();
       if(userId !== ownerId) {
-        next(new ForbiddenError("You don't have permission to delete this item")) //.send({ message: "You don't have permission to delete this item"}) // FE forbiddenError
+        throw new ForbiddenError("You don't have permission to delete this item") //.send({ message: "You don't have permission to delete this item"}) // FE forbiddenError
       }
 
       ClothingItem.findByIdAndDelete(itemId).orFail();
     })
-    .then((item) => res.status(200).send(item)) // {}
+    .then((item) => {
+      if(!item) throw new NotFoundError("Item not found after delete");
+      res.status(200).send(item)}) // {}
     .catch((err) => {
       console.error(err);
 

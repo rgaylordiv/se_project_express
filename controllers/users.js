@@ -8,8 +8,11 @@ const getCurrentUser = (req, res, next) => {
   const userId = req.user._id; // req.params
 
   User.findById(userId)
-    .orFail()
-    .then((user) => res.status(200).send(user))
+    // .orFail()
+    .then((user) => {
+      if(!user) throw new NotFoundError('User not found');
+      res.status(200).send(user)
+    })
     .catch(err => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
@@ -30,13 +33,13 @@ const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
   if(!email || !password){
-    next(new BadRequestError('Enter email and password are required')) // castError
+    throw new BadRequestError('Enter email and password are required') // castError
   }
 
   return User.findOne({email})  // added return here for github action
   .then((user) => {
     if(user){
-      next(new ConflictError("User with this email doesn't exist")) //.send({ message: "User with this email doesn't exist"}); // duplicationError
+      throw new ConflictError("User with this email doesn't exist")//.send({ message: "User with this email doesn't exist"}); // duplicationError
     }
     return bcrypt.hash(password, 10)
       .then(hash => User.create({
@@ -88,7 +91,7 @@ const updateUser = (req, res, next) => {
     { name, avatar },
     { new: true, runValidators: true}
     )
-    .orFail()
+    // .orFail() removed
     .then((user) => {
       res.status(200).send(user);
     })
@@ -113,7 +116,7 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if(!email || !password){
-    next(new BadRequestError('Enter email and password')) // castError
+    throw new BadRequestError('Enter email and password') // castError
   }
   return User.findUserByCredentials(email, password)
     .then((user) => {
