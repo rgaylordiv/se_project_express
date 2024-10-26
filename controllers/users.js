@@ -1,10 +1,10 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken')
 const User = require('../models/user');
-const { documentNotFoundError, castError, serverError, authenticationError, duplicationError } = require('../utils/errors');
+const { documentNotFoundError, castError, serverError, authenticationError, duplicationError, BadRequestError, UnauthorizedError, ForbiddenError, NotFoundError, ConflictError } = require('../utils/errors');
 const JWT_SECRET = require('../utils/config');
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   const userId = req.user._id; // req.params
 
   User.findById(userId)
@@ -13,28 +13,30 @@ const getCurrentUser = (req, res) => {
     .catch(err => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        return res.status(documentNotFoundError).send({ message: err.message })
+        next(new NotFoundError({ message: err.message })) //.send({ message: err.message }) // NFE documentNotFoundError
       }
 
-      if (err.name === "CastError"){
-        return res.status(castError).send({ message: "Invalid data" })
+      if (err.name === "CastError") { // ValdiationError
+        next(new BadRequestError({ message: 'Invalid data' })) //.send({ message: 'Invalid data' })  400 - BRE was castError
+      } else {
+       next(err);
       }
 
-      return res.status(serverError).send({ message: "An error has occurred on the server"});
+      // return res.status(serverError).send({ message: "An error has occurred on the server"});
     })
 }
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
-  if (!email || !password) {
-    return res.status(castError).send({ message: "Email and password are required" });
+  if(!email || !password){
+    next(new BadRequestError({ message: 'Enter email and password are required' })) // castError
   }
 
   return User.findOne({email})  // added return here for github action
   .then((user) => {
     if(user){
-      return res.status(duplicationError).send({ message: "User with this email doesn't exist"});
+      next(new ConflictError("User with this email doesn't exist")) //.send({ message: "User with this email doesn't exist"}); // duplicationError
     }
     return bcrypt.hash(password, 10)
       .then(hash => User.create({
@@ -48,32 +50,36 @@ const createUser = (req, res) => {
         console.error(err);
 
         if(err.code === 11000){
-          return res.status(duplicationError).send({ message: "User with this email doesn't exist"});
+          next(new ConflictError({ message: "User with this email doesn't exist" })) //.send({ message: "User with this email doesn't exist"}); // duplicationError
         }
 
-        if (err.name === "ValidationError") {
-          return res.status(castError).send({ message: "Invalid data" })
+        if (err.name === "CastError") { // ValdiationError
+          next(new BadRequestError({ message: 'Invalid data' })) //.send({ message: 'Invalid data' })  400 - BRE was castError
+        } else {
+          next(err);
         }
 
-        return res.status(serverError).send({ message: "An error has occurred on the server"});
+        // return res.status(serverError).send({ message: "An error has occurred on the server"});
     }))
   })
   .catch((err) => { // this was added to the findOne prosime so it can catch possible errors
     console.error(err);
 
     if(err.code === 11000){
-      return res.status(duplicationError).send({ message: "User with this email doesn't exist"});
+      next(new ConflictError({ message: "User with this email doesn't exist" })) //.send({ message: "User with this email doesn't exist"}); // duplicationError
     }
 
-    if (err.name === "ValidationError") {
-      return res.status(castError).send({ message: "Invalid data" })
+    if (err.name === "CastError") { // ValdiationError
+      next(new BadRequestError({ message: 'Invalid data' })) //.send({ message: 'Invalid data' })  400 - BRE was castError
+    } else {
+      next(err);
     }
 
-    return res.status(serverError).send({ message: "An error has occurred on the server"});
+    // return res.status(serverError).send({ message: "An error has occurred on the server"});
 })
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { name, avatar } = req.body;
   const userId = req.user._id; // req.params
 
@@ -89,25 +95,26 @@ const updateUser = (req, res) => {
     .catch((err) => {
       console.error(err);
 
-      if (err.name === "ValidationError") {
-        return res.status(castError).send({ message: "Invalid data" })
+      if (err.name === "CastError") { // ValdiationError
+        next(new BadRequestError({ message: 'Invalid data' })) //.send({ message: 'Invalid data' })  400 - BRE was castError
       }
 
-      if(err.name === "DocumentNotFoundError"){
-        return res.status(documentNotFoundError).send({ message: 'User could not be found'});
+      if (err.name === "DocumentNotFoundError") {
+        next(new NotFoundError({ message: err.message })) //.send({ message: err.message }) // NFE documentNotFoundError
+      } else {
+        next(err);
       }
 
-      return res.status(serverError).send({ message: "An error has occurred on the server"});
+      // return res.status(serverError).send({ message: "An error has occurred on the server"});
     })
 }
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if(!email || !password){
-    return res.status(castError).send({ message: "Enter email and password"});
+    next(new BadRequestError({ message: 'Enter email and password' })) // castError
   }
-
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
@@ -118,10 +125,12 @@ const login = (req, res) => {
     })
     .catch((err) => {
       if ((err.message === "Incorrect email address") || (err.message ===  "Incorrect password")) {
-        return res.status(authenticationError).send({ message: 'Authentication error'});
+        next(new UnauthorizedError({ message: 'Authentication error' })) //.send({ message: 'Authentication error'}); // authenticationError
+     } else {
+      next(err);
      }
 
-     return res.status(serverError).send({ message: "An error has occurred on the server"});  // the if block was added
+    //  return res.status(serverError).send({ message: "An error has occurred on the server"});  // the if block was added
     })
 }
 
