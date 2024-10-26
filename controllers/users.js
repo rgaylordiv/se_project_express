@@ -33,13 +33,13 @@ const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
   if(!email || !password){
-    throw new BadRequestError('Enter email and password are required') // castError
+    return next(new BadRequestError('Email and password are required')) // castError
   }
 
   return User.findOne({email})  // added return here for github action
   .then((user) => {
     if(user){
-      throw new ConflictError("User with this email doesn't exist")//.send({ message: "User with this email doesn't exist"}); // duplicationError
+      throw new ConflictError("User with this email already exists");
     }
     return bcrypt.hash(password, 10)
       .then(hash => User.create({
@@ -48,22 +48,16 @@ const createUser = (req, res, next) => {
         email, // req.body.email
         password: hash
       })
-      .then(() => res.status(201).send({ name, avatar, email })) // was previously user param
+      .then((newUser) => res.status(201).send({ name, avatar, email })) // was previously user param
       .catch((err) => {
-        console.error(err);
-
-        if(err.code === 11000){
-          next(new ConflictError("User with this email doesn't exist")) //.send({ message: "User with this email doesn't exist"}); // duplicationError
-        }
-
-        if (err.name === "CastError") { // ValdiationError
-          next(new BadRequestError('Invalid data')) //.send({ message: 'Invalid data' })  400 - BRE was castError
+        if (err.code === 11000) {
+          next(new ConflictError("User with this email already exists"));
+        } else if (err.name === "ValidationError") {
+          next(new BadRequestError('Invalid data'));
         } else {
           next(err);
         }
-
-        // return res.status(serverError).send({ message: "An error has occurred on the server"});
-    }))
+      }))
   })
   .catch((err) => { // this was added to the findOne prosime so it can catch possible errors
     console.error(err);

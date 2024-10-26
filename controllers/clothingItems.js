@@ -44,7 +44,7 @@ const deleteItem = (req, res, next) => {
         throw new ForbiddenError("You don't have permission to delete this item") //.send({ message: "You don't have permission to delete this item"}) // FE forbiddenError
       }
 
-      ClothingItem.findByIdAndDelete(itemId).orFail();
+      return ClothingItem.findByIdAndDelete(itemId);
     })
     .then((item) => {
       if(!item) throw new NotFoundError("Item not found after delete");
@@ -53,15 +53,12 @@ const deleteItem = (req, res, next) => {
       console.error(err);
 
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError({ message: err.message })) //.send({ message: err.message }) // NFE documentNotFoundError
-      }
-
-      if (err.name === "CastError") { // ValdiationError
-        next(new BadRequestError('Invalid data')) //.send({ message: 'Invalid data' })  400 - BRE was castError
+        next(new NotFoundError(err.message));
+      } else if (err.name === "CastError") {
+        next(new BadRequestError('Invalid data'));
       } else {
         next(err);
       }
-
       // return res.status(serverError).send({ message: "An error has occurred on the server" });
     })
 }
