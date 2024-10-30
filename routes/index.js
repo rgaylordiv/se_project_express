@@ -5,7 +5,11 @@ const { documentNotFoundError } = require('../utils/errors');
 const { login, createUser } = require('../controllers/users');
 const { validateUsers, validateAuthentication } = require('../middlewares/validation')
 //Joi needs to be added after auth
-
+router.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Server will crash now');
+  }, 0);
+});// remove after review
 router.post('/signin', validateAuthentication, login);
 router.post('/signup', validateUsers, createUser);
 router.use('/users', userRouter);
