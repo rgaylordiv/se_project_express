@@ -34,12 +34,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     select: false,
-    // validate: {
-    //   validator(value) {
-    //     return validator.isStrongPassword(value);
-    //   },
-    //   message: 'You must enter a strong password',
-    // }
   }
 });
 

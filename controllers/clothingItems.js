@@ -1,6 +1,4 @@
 const ClothingItem = require('../models/clothingItem')
-// const { serverError } = require('../utils/errors');
-const ServerError  = require('../utils/ServerError');
 const BadRequestError  = require('../utils/BadRequestError');
 const ForbiddenError  = require('../utils/ForbiddenError');
 const NotFoundError  = require('../utils/NotFoundError');
@@ -9,10 +7,7 @@ const NotFoundError  = require('../utils/NotFoundError');
 const getItems = (req, res, next) => {
   ClothingItem.find({})
     .then(items => res.status(200).send(items))
-    .catch(err => {
-      console.error(err);
-      throw new ServerError("An error has occurred on the server");
-    });
+    .catch(next);
 }
 
 const createItem = (req, res, next) => {
@@ -22,17 +17,15 @@ const createItem = (req, res, next) => {
   console.log('Owner:', owner);
 
   ClothingItem.create({ name, weather, imageUrl, owner })
-    .then(item => res.status(201).send({data:item})) // item
+    .then(item => res.status(201).send({data:item}))
     .catch(err => {
       console.error(err);
 
-      if (err.name === "ValidationError") { // ValdiationError
-        next(new BadRequestError('Invalid data')) // .send({ message: 'Invalid data' })  400 - BRE was castError
+      if (err.name === "ValidationError") {
+        next(new BadRequestError('Invalid data'))
       } else{
         next(err);
       }
-
-      // return res.status(serverError).send({ message: "An error has occurred on the server" });
     })
 }
 
@@ -40,20 +33,20 @@ const deleteItem = (req, res, next) => {
   const { itemId } = req.params;
   const userId = req.user._id;
 
-  ClothingItem.findById(itemId) // was findByIdAndDelete
+  ClothingItem.findById(itemId)
     .then((items) => {
       if(!items) throw new NotFoundError('Item not found');
 
       const ownerId = items.owner.toString();
       if(userId !== ownerId) {
-        throw new ForbiddenError("You don't have permission to delete this item") // .send({ message: "You don't have permission to delete this item"}) // FE forbiddenError
+        throw new ForbiddenError("You don't have permission to delete this item")
       }
 
       return ClothingItem.findByIdAndDelete(itemId);
     })
     .then((item) => {
       if(!item) throw new NotFoundError("Item not found after delete");
-      res.status(200).send(item)}) // {}
+      res.status(200).send(item)})
     .catch((err) => {
       console.error(err);
 
@@ -64,7 +57,6 @@ const deleteItem = (req, res, next) => {
       } else {
         next(err);
       }
-      // return res.status(serverError).send({ message: "An error has occurred on the server" });
     })
 }
 
@@ -78,16 +70,14 @@ const likeItem = (req, res, next) => {
       console.error(err);
 
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError('Data not found')) // .send({ message: err.message }) // NFE documentNotFoundError
+        next(new NotFoundError('Data not found'))
       }
 
-      if (err.name === "CastError") { // ValdiationError
-        next(new BadRequestError('Invalid data')) // .send({ message: 'Invalid data' })  400 - BRE was castError
+      if (err.name === "CastError") {
+        next(new BadRequestError('Invalid data'))
       } else {
         next(err);
       }
-
-      // return res.status(serverError).send({ message: "An error has occurred on the server" });
     })
 }
 
@@ -101,16 +91,14 @@ const dislikeItem = (req, res, next) => {
       console.error(err);
 
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError('Data not found')) // .send({ message: err.message }) // NFE documentNotFoundError
+        next(new NotFoundError('Data not found'))
       }
 
-      if (err.name === "CastError") { // ValdiationError
-        next(new BadRequestError('Invalid data')) // .send({ message: 'Invalid data' })  400 - BRE was castError
+      if (err.name === "CastError") {
+        next(new BadRequestError('Invalid data'))
       } else {
         next(err);
       }
-
-      // return res.status(serverError).send({ message: "An error has occurred on the server" });
     })
 }
 

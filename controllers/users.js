@@ -1,7 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken')
 const User = require('../models/user');
-// const { documentNotFoundError, castError, serverError, authenticationError, duplicationError } = require('../utils/errors');
 const ConflictError  = require('../utils/ConflictError');
 const BadRequestError  = require('../utils/BadRequestError');
 const UnauthorizedError  = require('../utils/UnauthorizedError');
@@ -10,10 +9,9 @@ const NotFoundError  = require('../utils/NotFoundError');
 const JWT_SECRET = require('../utils/config');
 
 const getCurrentUser = (req, res, next) => {
-  const userId = req.user._id; // req.params
+  const userId = req.user._id;
 
   User.findById(userId)
-    // .orFail()
     .then((user) => {
       if(!user) throw new NotFoundError('User not found');
       res.status(200).send(user)
@@ -21,16 +19,14 @@ const getCurrentUser = (req, res, next) => {
     .catch(err => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError('Data not found')) // .send({ message: err.message }) // NFE documentNotFoundError
+        next(new NotFoundError('Data not found'))
       }
 
-      if (err.name === "CastError") { // ValdiationError
-        next(new BadRequestError({ message: 'Invalid data' })) // .send({ message: 'Invalid data' })  400 - BRE was castError
+      if (err.name === "CastError") {
+        next(new BadRequestError({ message: 'Invalid data' }))
       } else {
        next(err);
       }
-
-      // return res.status(serverError).send({ message: "An error has occurred on the server"});
     })
 }
 
@@ -38,10 +34,10 @@ const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
   if(!email || !password){
-    return next(new BadRequestError('Email and password are required')) // castError
+    return next(new BadRequestError('Email and password are required'))
   }
 
-  return User.findOne({email})  // added return here for github action
+  return User.findOne({email})
   .then((user) => {
     if(user){
       throw new ConflictError("User with this email already exists");
@@ -50,10 +46,10 @@ const createUser = (req, res, next) => {
       .then(hash => User.create({
         name,
         avatar,
-        email, // req.body.email
+        email,
         password: hash
       })
-      .then(() => res.status(201).send({ name, avatar, email })) // was previously user param and newUser was an arg
+      .then(() => res.status(201).send({ name, avatar, email }))
       .catch((err) => {
         if (err.code === 11000) {
           next(new ConflictError("User with this email already exists"));
@@ -64,50 +60,35 @@ const createUser = (req, res, next) => {
         }
       }))
   })
-  .catch((err) => { // this was added to the findOne prosime so it can catch possible errors
+  .catch((err) => {
     next(err);
-
-    // if(err.code === 11000){
-    //   next(new ConflictError("User with this email doesn't exist")) //.send({ message: "User with this email doesn't exist"}); // duplicationError
-    // }
-
-    // if (err.name === "CastError") { // ValdiationError
-    //   next(new BadRequestError('Invalid data')) //.send({ message: 'Invalid data' })  400 - BRE was castError
-    // } else {
-    //   next(err);
-    // }
-
-    // return res.status(serverError).send({ message: "An error has occurred on the server"});
 })
 };
 
 const updateUser = (req, res, next) => {
   const { name, avatar } = req.body;
-  const userId = req.user._id; // req.params
+  const userId = req.user._id;
 
   return User.findByIdAndUpdate(
     userId,
     { name, avatar },
     { new: true, runValidators: true}
     )
-    // .orFail() removed
     .then((user) => {
       res.status(200).send(user);
     })
     .catch((err) => {
       console.error(err);
 
-      if (err.name === "CastError") { // ValdiationError
-        next(new BadRequestError('Invalid data')) // .send({ message: 'Invalid data' })  400 - BRE was castError
+      if (err.name === "CastError") {
+        next(new BadRequestError('Invalid data'))
       }
 
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError('Data not found')) // .send({ message: err.message }) // NFE documentNotFoundError
+        next(new NotFoundError('Data not found'))
       } else {
         next(err);
       }
-
-      // return res.status(serverError).send({ message: "An error has occurred on the server"});
     })
 }
 
@@ -115,7 +96,7 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if(!email || !password){
-    throw new BadRequestError('Enter email and password') // castError
+    throw new BadRequestError('Enter email and password')
   }
   return User.findUserByCredentials(email, password)
     .then((user) => {
@@ -127,12 +108,10 @@ const login = (req, res, next) => {
     })
     .catch((err) => {
       if ((err.message === "Incorrect email address") || (err.message ===  "Incorrect password")) {
-        next(new UnauthorizedError('Authentication error')) // .send({ message: 'Authentication error'}); // authenticationError
+        next(new UnauthorizedError('Authentication error'))
      } else {
       next(err);
      }
-
-    //  return res.status(serverError).send({ message: "An error has occurred on the server"});  // the if block was added
     })
 }
 

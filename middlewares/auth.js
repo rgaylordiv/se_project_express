@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = require('../utils/config')
-// const { authenticationError } = require('../utils/errors');
 const UnauthorizedError  = require('../utils/UnauthorizedError');
 
 const auth = (req, res, next) => {
@@ -17,12 +16,11 @@ const auth = (req, res, next) => {
     payload = jwt.verify(token, JWT_SECRET);
   } catch(err){
     throw new UnauthorizedError('Authorization Required');
-    // return res.status(authenticationError).send({ message: 'Authorization Required'});
   }
 
   req.user = payload;
 
-  return next(); // added return here for github action
+  return next();
 }
 
 module.exports = auth;
