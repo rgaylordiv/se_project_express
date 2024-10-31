@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const auth = require('../middlewares/auth')
 const { validateClothingItems, validateId } = require('../middlewares/validation')
-//Joi needs to be added after auth
+// Joi needs to be added after auth
 const { getItems, createItem, likeItem, dislikeItem, deleteItem } = require('../controllers/clothingItems')
 
 router.get('/', getItems);

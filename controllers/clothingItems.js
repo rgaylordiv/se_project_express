@@ -1,12 +1,17 @@
 const ClothingItem = require('../models/clothingItem')
-const { serverError, BadRequestError, UnauthorizedError, ForbiddenError, NotFoundError, ConflictError } = require('../utils/errors')
+// const { serverError } = require('../utils/errors');
+const ServerError  = require('../utils/ServerError');
+const BadRequestError  = require('../utils/BadRequestError');
+const ForbiddenError  = require('../utils/ForbiddenError');
+const NotFoundError  = require('../utils/NotFoundError');
+
 
 const getItems = (req, res, next) => {
   ClothingItem.find({})
     .then(items => res.status(200).send(items))
     .catch(err => {
       console.error(err);
-      return res.status(serverError).send({ message: "An error has occurred on the server" });
+      throw new ServerError("An error has occurred on the server");
     });
 }
 
@@ -22,7 +27,7 @@ const createItem = (req, res, next) => {
       console.error(err);
 
       if (err.name === "ValidationError") { // ValdiationError
-        next(new BadRequestError('Invalid data')) //.send({ message: 'Invalid data' })  400 - BRE was castError
+        next(new BadRequestError('Invalid data')) // .send({ message: 'Invalid data' })  400 - BRE was castError
       } else{
         next(err);
       }
@@ -41,7 +46,7 @@ const deleteItem = (req, res, next) => {
 
       const ownerId = items.owner.toString();
       if(userId !== ownerId) {
-        throw new ForbiddenError("You don't have permission to delete this item") //.send({ message: "You don't have permission to delete this item"}) // FE forbiddenError
+        throw new ForbiddenError("You don't have permission to delete this item") // .send({ message: "You don't have permission to delete this item"}) // FE forbiddenError
       }
 
       return ClothingItem.findByIdAndDelete(itemId);
@@ -73,11 +78,11 @@ const likeItem = (req, res, next) => {
       console.error(err);
 
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError('Data not found')) //.send({ message: err.message }) // NFE documentNotFoundError
+        next(new NotFoundError('Data not found')) // .send({ message: err.message }) // NFE documentNotFoundError
       }
 
       if (err.name === "CastError") { // ValdiationError
-        next(new BadRequestError('Invalid data')) //.send({ message: 'Invalid data' })  400 - BRE was castError
+        next(new BadRequestError('Invalid data')) // .send({ message: 'Invalid data' })  400 - BRE was castError
       } else {
         next(err);
       }
@@ -96,11 +101,11 @@ const dislikeItem = (req, res, next) => {
       console.error(err);
 
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError('Data not found')) //.send({ message: err.message }) // NFE documentNotFoundError
+        next(new NotFoundError('Data not found')) // .send({ message: err.message }) // NFE documentNotFoundError
       }
 
       if (err.name === "CastError") { // ValdiationError
-        next(new BadRequestError('Invalid data')) //.send({ message: 'Invalid data' })  400 - BRE was castError
+        next(new BadRequestError('Invalid data')) // .send({ message: 'Invalid data' })  400 - BRE was castError
       } else {
         next(err);
       }

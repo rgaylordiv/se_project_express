@@ -1,7 +1,12 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken')
 const User = require('../models/user');
-const { documentNotFoundError, castError, serverError, authenticationError, duplicationError, BadRequestError, UnauthorizedError, ForbiddenError, NotFoundError, ConflictError } = require('../utils/errors');
+// const { documentNotFoundError, castError, serverError, authenticationError, duplicationError } = require('../utils/errors');
+const ConflictError  = require('../utils/ConflictError');
+const BadRequestError  = require('../utils/BadRequestError');
+const UnauthorizedError  = require('../utils/UnauthorizedError');
+const NotFoundError  = require('../utils/NotFoundError');
+
 const JWT_SECRET = require('../utils/config');
 
 const getCurrentUser = (req, res, next) => {
@@ -16,11 +21,11 @@ const getCurrentUser = (req, res, next) => {
     .catch(err => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError('Data not found')) //.send({ message: err.message }) // NFE documentNotFoundError
+        next(new NotFoundError('Data not found')) // .send({ message: err.message }) // NFE documentNotFoundError
       }
 
       if (err.name === "CastError") { // ValdiationError
-        next(new BadRequestError({ message: 'Invalid data' })) //.send({ message: 'Invalid data' })  400 - BRE was castError
+        next(new BadRequestError({ message: 'Invalid data' })) // .send({ message: 'Invalid data' })  400 - BRE was castError
       } else {
        next(err);
       }
@@ -48,7 +53,7 @@ const createUser = (req, res, next) => {
         email, // req.body.email
         password: hash
       })
-      .then((newUser) => res.status(201).send({ name, avatar, email })) // was previously user param
+      .then(() => res.status(201).send({ name, avatar, email })) // was previously user param and newUser was an arg
       .catch((err) => {
         if (err.code === 11000) {
           next(new ConflictError("User with this email already exists"));
@@ -60,17 +65,17 @@ const createUser = (req, res, next) => {
       }))
   })
   .catch((err) => { // this was added to the findOne prosime so it can catch possible errors
-    console.error(err);
+    next(err);
 
-    if(err.code === 11000){
-      next(new ConflictError("User with this email doesn't exist")) //.send({ message: "User with this email doesn't exist"}); // duplicationError
-    }
+    // if(err.code === 11000){
+    //   next(new ConflictError("User with this email doesn't exist")) //.send({ message: "User with this email doesn't exist"}); // duplicationError
+    // }
 
-    if (err.name === "CastError") { // ValdiationError
-      next(new BadRequestError('Invalid data')) //.send({ message: 'Invalid data' })  400 - BRE was castError
-    } else {
-      next(err);
-    }
+    // if (err.name === "CastError") { // ValdiationError
+    //   next(new BadRequestError('Invalid data')) //.send({ message: 'Invalid data' })  400 - BRE was castError
+    // } else {
+    //   next(err);
+    // }
 
     // return res.status(serverError).send({ message: "An error has occurred on the server"});
 })
@@ -93,11 +98,11 @@ const updateUser = (req, res, next) => {
       console.error(err);
 
       if (err.name === "CastError") { // ValdiationError
-        next(new BadRequestError('Invalid data')) //.send({ message: 'Invalid data' })  400 - BRE was castError
+        next(new BadRequestError('Invalid data')) // .send({ message: 'Invalid data' })  400 - BRE was castError
       }
 
       if (err.name === "DocumentNotFoundError") {
-        next(new NotFoundError('Data not found')) //.send({ message: err.message }) // NFE documentNotFoundError
+        next(new NotFoundError('Data not found')) // .send({ message: err.message }) // NFE documentNotFoundError
       } else {
         next(err);
       }
@@ -122,7 +127,7 @@ const login = (req, res, next) => {
     })
     .catch((err) => {
       if ((err.message === "Incorrect email address") || (err.message ===  "Incorrect password")) {
-        next(new UnauthorizedError('Authentication error')) //.send({ message: 'Authentication error'}); // authenticationError
+        next(new UnauthorizedError('Authentication error')) // .send({ message: 'Authentication error'}); // authenticationError
      } else {
       next(err);
      }
